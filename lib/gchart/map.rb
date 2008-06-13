@@ -6,7 +6,6 @@ module GChart
     attr_accessor :background
     
     def initialize(*args, &block)
-      super(*args, &block)
       # Set some sane defaults so that the only requirement is data
       @area = 'world' #default
       @background = 'dfdfff' #make it look like water
@@ -15,6 +14,7 @@ module GChart
       # it is also the proper aspect ratio)
       @width = '440'
       @height = '220'
+      super(*args, &block)
     end
     
     # Map data can be in the form {"VA'=>5,'NY'=>1} or [['VA',5],['NY',1]]

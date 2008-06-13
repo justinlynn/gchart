@@ -30,8 +30,8 @@ module GChart
     def initialize(options={}, &block)
       @data = []
       @extras = {}
-      @width = 300
-      @height = 200
+      @width  ||= 300
+      @height ||= 200
   
       options.each { |k, v| send("#{k}=", v) }
       yield(self) if block_given?

@@ -112,10 +112,10 @@ module GChart
       max = self.max || raw.collect { |s| s.max }.max
   
       sets = raw.collect do |set|
-        set.collect { |n| GChart.encode(:extended, n, max) }.join
+        set.collect { |n| GChart.encode(:text, n, max) }.join(',')
       end
   
-      params["chd"] = "e:#{sets.join(",")}"
+      params["chd"] = "t:#{sets.join("|")}"
     end
     
     def render_title(params) #:nodoc:

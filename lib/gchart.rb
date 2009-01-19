@@ -50,7 +50,7 @@ module GChart
         SIMPLE_CHARS[((n/max.to_f) * (SIMPLE_CHARS.size - 1)).round]
       when :text
         return "-1" if n.nil?
-        ((((n/max.to_f) * 1000.0).round)/10.0).to_s
+        n.to_s
       when :extended
         return "__" if n.nil?
         EXTENDED_PAIRS[max.zero? ? 0 : ((n/max.to_f) * (EXTENDED_PAIRS.size - 1)).round]

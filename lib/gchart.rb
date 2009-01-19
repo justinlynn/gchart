@@ -1,7 +1,13 @@
 require File.expand_path(File.dirname(__FILE__) + "/version")
+require File.expand_path(File.dirname(__FILE__) + "/gchart/colors")
+require File.expand_path(File.dirname(__FILE__) + "/gchart/axis")
 
 %w(base bar line map meter pie pie_3d scatter sparkline venn xy_line).each do |type|
   require File.expand_path(File.dirname(__FILE__) + "/gchart/#{type}")
+end
+
+%w(horizontal vertical top right bottom left).each do |type|
+  require File.expand_path(File.dirname(__FILE__) + "/gchart/axis/#{type}_axis")
 end
 
 module GChart
@@ -32,15 +38,15 @@ module GChart
     # Convenience constructor for GChart::Pie3D.
     def pie3d(*args, &block); Pie3D.new(*args, &block) end    
     
-    # Convenience constructor for GChart::Line.
+    # Convenience constructor for GChart::Scatter.
+    def scatter(*args, &block); Scatter.new(*args, &block) end
+    
+    # Convenience constructor for GChart::Sparkline.
     def sparkline(*args, &block); Sparkline.new(*args, &block) end
 
     # Convenience constructor for GChart::Venn.
     def venn(*args, &block); Venn.new(*args, &block) end    
-    
-    # Convenience constructor for GChart::Scatter.
-    def scatter(*args, &block); Scatter.new(*args, &block) end
-    
+
     # Encode +n+ as a string. +n+ is normalized based on +max+.
     # +encoding+ can currently only be :extended.
     def encode(encoding, n, max)

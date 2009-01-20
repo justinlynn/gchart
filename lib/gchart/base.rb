@@ -134,15 +134,13 @@ module GChart
     def render_chart_type #:nodoc:
       raise NotImplementedError, "override in subclasses"
     end
-    
+
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
-      max = self.max || raw.collect { |s| s.max }.max
 
-      sets = raw.collect do |set|
-        set.collect { |n| GChart.encode(:text, n, max) }.join(',')
-      end
-      params["chd"] = "t:#{sets.join("|")}"
+      encoded = GChart.encode_datasets(raw, max)
+
+      params["chd"] = encoded
     end
     
     def render_title(params) #:nodoc:

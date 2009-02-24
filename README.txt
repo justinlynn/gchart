@@ -106,6 +106,7 @@ are line charts, bar charts, radar charts and scatter plots. See
 
     g.axis(:left) do |a|
       a.range = 0..100
+      a.interval = 25
       a.text_color = :red
       a.font_size  = 9
     end

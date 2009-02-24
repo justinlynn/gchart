@@ -15,6 +15,10 @@ module GChart
     # occurs for +range+.
     attr_accessor :range
 
+    # Axis labels are evenly spaced along the axis, with +interval+
+    # difference between each
+    attr_accessor :interval
+
     # An rrggbb color for axis text.
     attr_accessor :text_color
 

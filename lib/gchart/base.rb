@@ -223,7 +223,11 @@ module GChart
         chxr = []
 
         @axes.each_with_index do |axis, index|
-          chxr.push("#{index},#{axis.range.first},#{axis.range.last}") if axis.range
+          if axis.range && axis.interval
+            chxr << "#{index},#{axis.range.first},#{axis.range.last},#{axis.interval}"
+          elsif axis.range
+            chxr << "#{index},#{axis.range.first},#{axis.range.last}"
+          end
         end
 
         params["chxr"] = chxr.join('|')

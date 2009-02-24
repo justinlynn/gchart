@@ -77,4 +77,12 @@ describe GChart::Bar, "#query_params" do
     @chart.spacing = 2
     @chart.query_params.keys.include?("chbh").should be_false
   end
+
+  it "contains the chart's automatic setting for bar width" do
+    @chart.thickness = :automatic
+    @chart.query_params.keys.include?("chbh").should be_true
+    @chart.query_params["chbh"].should == "a"
+    @chart.spacing = 2
+    @chart.query_params["chbh"].should == "a"
+  end
 end

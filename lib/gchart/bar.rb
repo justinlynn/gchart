@@ -33,8 +33,12 @@ module GChart
       @orientation == :vertical
     end
     
+    # sets the thickness of the bars, can be either :automatic or a number of pixels
+    # Google's default is 23 pixels
     def thickness=(thickness)
-      raise ArgumentError, "Invalid thickness: #{thickness.inspect}" if thickness.nil? || thickness < 1
+      if thickness.nil? || (thickness != :automatic && thickness < 1)
+        raise ArgumentError, "Invalid thickness: #{thickness.inspect}"
+      end
       @thickness = thickness
     end
     
@@ -46,8 +50,12 @@ module GChart
     # overrides GChart::Base#query_params
     def query_params(params={}) #:nodoc:
       values = []
-      values << thickness if thickness
-      values << spacing if thickness && spacing
+      if thickness == :automatic
+        values << "a"
+      elsif thickness
+        values << thickness
+        values << spacing if spacing
+      end
       
       params["chbh"] = values.join(",") unless values.empty?
       super(params)

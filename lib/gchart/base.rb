@@ -37,14 +37,14 @@ module GChart
     attr_accessor :axes
 
     def initialize(options={}, &block)
-      @data   = []
-      @colors = []
-      @legend = []
-      @axes   = []
-      @extras = {}
+      @data   ||= []
+      @colors ||= []
+      @legend ||= []
+      @axes   ||= []
+      @extras ||= {}
 
-      @width = 300
-      @height = 200
+      @width  ||= 300
+      @height ||= 200
   
       options.each { |k, v| send("#{k}=", v) }
       yield(self) if block_given?

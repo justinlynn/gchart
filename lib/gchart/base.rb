@@ -36,16 +36,20 @@ module GChart
     # Array of +GChart::Axis+ objects.
     attr_accessor :axes
 
+    # Array of rrggbb colors with optional start and end indexes
+    attr_accessor :fills
+
     def initialize(options={}, &block)
       @data   ||= []
       @colors ||= []
       @legend ||= []
       @axes   ||= []
       @extras ||= {}
+      @fills  ||= []
 
       @width  ||= 300
       @height ||= 200
-  
+
       options.each { |k, v| send("#{k}=", v) }
       yield(self) if block_given?
     end
@@ -112,7 +116,7 @@ module GChart
     end
 
     protected
-    
+
     def url_to_try
       query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
       "#{GChart::URL}?#{query}"
@@ -120,12 +124,13 @@ module GChart
 
     def query_params(raw_params={}) #:nodoc:
       params = raw_params.merge("cht" => render_chart_type, "chs" => size)
-      
+
       render_data(params)
       render_title(params)
       render_colors(params)
       render_legend(params)
       render_backgrounds(params)
+      render_fills(params)
 
       unless @axes.empty?
         if is_a?(GChart::Line) or is_a?(GChart::Bar) or is_a?(GChart::Scatter) # or is_a?(GChart::Radar)
@@ -139,7 +144,7 @@ module GChart
     def render_chart_type #:nodoc:
       raise NotImplementedError, "override in subclasses"
     end
-    
+
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
       max = self.max || raw.collect { |s| s.max }.max
@@ -149,7 +154,7 @@ module GChart
       end
       params["chd"] = "e:#{sets.join(",")}"
     end
-    
+
     def render_title(params) #:nodoc:
       params["chtt"] = title.tr("\n ", "|+") if title
     end
@@ -254,12 +259,36 @@ module GChart
 
     def render_axis_range_markers(params) #:nodoc:
       if @axes.any?{ |axis| axis.range_markers.size > 0 }
-        chmr = []
+        # make sure we get any existing chm params in there
+        chmr = [ params["chm"] ].compact
 
         @axes.each do |axis|
           axis.range_markers.each do |range, color|
             chmr.push("#{axis.range_marker_type_label},#{color},0,#{range.first},#{range.last}")
           end
+        end
+
+        params["chm"] = chmr.join('|')
+      end
+    end
+
+    def render_fills(params) #:nodoc:
+      unless @fills.empty?
+        # make sure we get any existing chm params in there
+        chmr = [ params["chm"] ].compact
+
+        @fills.each do |fill|
+          color, start_idx, end_idx = *Array(fill)
+          start_idx ||= 0
+          end_idx   ||= 0
+
+          if start_idx == 0 && end_idx == 0
+            op = 'B'
+          else
+            op = 'b'
+          end
+
+          chmr << "#{op},#{GChart.expand_color(color)},#{start_idx},#{end_idx},0"
         end
 
         params["chm"] = chmr.join('|')

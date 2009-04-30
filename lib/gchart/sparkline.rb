@@ -4,9 +4,10 @@ module GChart
     # axis lines. Because they are often placed within text, the default
     # size should be smaller.
     def initialize(*args, &block)
+      @width  = 60
+      @height = 20
+
       super(*args, &block)
-      @width = "60"
-      @height = "20"
     end
     def render_chart_type #:nodoc:
       "ls"

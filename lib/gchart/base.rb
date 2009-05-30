@@ -131,7 +131,7 @@ module GChart
     
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
-      max = self.max || raw.collect { |s| s.max }.max
+      max = self.max || raw.collect { |s| s.compact.max }.max
   
       sets = raw.collect do |set|
         set.collect { |n| GChart.encode(:extended, n, max) }.join

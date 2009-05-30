@@ -67,3 +67,17 @@ describe GChart, ".line" do
     chart.to_url.should == "http://chart.apis.google.com/chart?chs=300x200&cht=lc&chtt=test&chd=e:AAAp.."
   end
 end
+
+describe GChart, ".parse" do
+  before(:each) do
+    @url = GChart.sparkline(:data => [10, 30, 5, 0, 60, 100]).to_url
+  end
+
+  it "should create the appropriate chart type" do
+    GChart.parse(@url).should be_an_instance_of(GChart::Sparkline)
+  end
+
+  it "should set the normalized data" do
+    GChart.parse(@url).data.should == [[410, 1229, 205, 0, 2457, 4095]]
+  end
+end

@@ -2,7 +2,18 @@ require "open-uri"
 require "uri"
 
 module GChart
+  class << self
+    attr_accessor :charts
+  end
+  
   class Base
+    AXIS_NAMES = {
+      :left_axis => 'y',
+      :top_axis => 't',
+      :right_axis => 'r',
+      :bottom_axis => 'x'
+    }
+
     # Array of chart data. See subclasses for specific usage.
     attr_accessor :data
     
@@ -26,7 +37,17 @@ module GChart
     
     # Chart height, in pixels.
     attr_reader :height
+    
+    attr_accessor :left_axis
+    attr_accessor :top_axis
+    attr_accessor :right_axis
+    attr_accessor :bottom_axis
 
+    def self.inherited(subclass)
+      GChart.charts ||= []
+      GChart.charts << subclass
+    end
+    
     def initialize(options={}, &block)
       @data = []
       @extras = {}
@@ -71,7 +92,7 @@ module GChart
         raise ArgumentError, "Invalid size: #{size.inspect} yields a graph with more than 300,000 pixels"
       end
     end
-
+    
     # Returns the chart's URL.
     def to_url
       query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
@@ -99,6 +120,7 @@ module GChart
       render_title(params)
       render_colors(params)
       render_legend(params)
+      render_axis(params)
 
       params.merge(extras)
     end
@@ -128,6 +150,23 @@ module GChart
     
     def render_legend(params) #:nodoc:
       params["chdl"] = legend.join("|") if legend
-    end    
+    end
+    
+    def render_axis(params) #:nodoc:
+      index = 0
+      [:left_axis, :top_axis, :right_axis, :bottom_axis].each do |axis|
+        if labels = send(axis)
+          params["chxt"] ||= ''
+          params["chxt"] += ',' unless params['chxt'].size == 0
+          params["chxt"] += AXIS_NAMES[axis]
+          if labels.is_a?(Array) 
+            params["chxl"] ||= ''
+            params["chxl"] += '|' unless params['chxl'].size == 0
+            params["chxl"] += "#{index}:|#{labels.join('|')}"
+          end
+          index += 1
+        end
+      end
+    end
   end
 end

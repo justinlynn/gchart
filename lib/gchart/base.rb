@@ -70,6 +70,15 @@ module GChart
     # Array of rrggbb colors with optional start and end indexes
     attr_accessor :fills
 
+    # Background rrggbb color of entire chart image.
+    attr_accessor :entire_background
+
+    # Background rrggbb color of just chart area of chart image.
+    attr_accessor :chart_background
+
+    # Array of +GChart::Axis+ objects.
+    attr_accessor :axes
+
     def initialize(options={}, &block)
       @data   ||= []
       @colors ||= []
@@ -178,14 +187,12 @@ module GChart
 
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
-      max = self.max || raw.collect { |s| s.compact.max }.max
-  
-      sets = raw.collect do |set|
-        set.collect { |n| GChart.encode(:extended, n, max) }.join
-      end
-      params["chd"] = "e:#{sets.join(",")}"
-    end
 
+      encoded = GChart.encode_datasets(raw, max)
+
+      params["chd"] = encoded
+    end
+    
     def render_title(params) #:nodoc:
       params["chtt"] = title.tr("\n ", "|+") if title
     end

@@ -49,10 +49,32 @@ module GChart
 
     # Convenience constructor for GChart::Venn.
     def venn(*args, &block); Venn.new(*args, &block) end    
-        
+
+    def encoding=(new_encoding)
+      @encoding = new_encoding if [:text, :simple, :extended].include? new_encoding
+    end
+
+    def encode_datasets(sets, force_max=nil)
+      max = force_max || sets.collect { |s| s.max }.max
+
+      join_character = @encoding == :text ? ',' : ''
+
+      output = sets.collect do |set|
+        set.collect { |n| GChart.encode(@encoding || :extended, n, max) }.join(join_character)
+      end
+
+      if @encoding == :text
+        "t:#{output.join('|')}"
+      else
+        "e:#{output.join(',')}"
+      end
+    end
+
     # Encode +n+ as a string. +n+ is normalized based on +max+.
     # +encoding+ can currently only be :extended.
     def encode(encoding, n, max)
+      encoding = @encoding if @encoding
+
       case encoding
       when :simple
         return "_" if n.nil?

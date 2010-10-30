@@ -1,6 +1,6 @@
 $LOAD_PATH.unshift(File.expand_path("#{File.dirname(__FILE__)}/../lib"))
 
-require "spec"
+require "rspec"
 require "gchart"
 
 module GChart

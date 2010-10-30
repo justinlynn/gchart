@@ -53,10 +53,26 @@ module GChart
     def encoding=(new_encoding)
       @encoding = new_encoding if [:text, :simple, :extended].include? new_encoding
     end
+    
+    def max_ignoring_nil(set)
+      max_seen = 0
+      set.each do |i|
+        if i.respond_to? :each
+          sub_max = max_ignoring_nil(i)
+          max_seen = sub_max if sub_max > max_seen
+        elsif i == nil
+          # do nothing
+        else
+          max_seen = i if i > max_seen
+        end
+      end
+      max_seen
+    end
+    private :max_ignoring_nil
 
     def encode_datasets(sets, force_max=nil)
-      max = force_max || sets.collect { |s| s.max }.max
-
+      max = force_max || max_ignoring_nil(sets.collect{|s| max_ignoring_nil(s)})
+      
       join_character = @encoding == :text ? ',' : ''
 
       output = sets.collect do |set|

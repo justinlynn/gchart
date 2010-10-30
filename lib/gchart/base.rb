@@ -155,8 +155,6 @@ module GChart
       axis
     end
 
-    protected
-
     def url_to_try
       query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
       "#{GChart::URL}?#{query}"
@@ -180,6 +178,8 @@ module GChart
 
       params.merge(extras)
     end
+
+    protected
 
     def render_chart_type #:nodoc:
       raise NotImplementedError, "override in subclasses"

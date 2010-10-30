@@ -77,4 +77,22 @@ describe GChart::Bar, "#query_params" do
     @chart.spacing = 2
     @chart.query_params.keys.include?("chbh").should be_false
   end
+
+  it "contains the chart's automatic setting for bar width" do
+    @chart.thickness = :automatic
+    @chart.query_params.keys.include?("chbh").should be_true
+    @chart.query_params["chbh"].should == "a"
+    @chart.spacing = 2
+    @chart.query_params["chbh"].should == "a"
+  end
+
+  it "contains the chart's axis ranges" do
+    @chart.query_params["chxr"].should be_nil
+
+    @chart.axis(:left) {|a| a.range = 0..10 }
+    @chart.query_params["chxr"].should == "0,0,10"
+
+    @chart.axes.first.interval = 1
+    @chart.query_params["chxr"].should == "0,0,10,1"
+  end
 end

@@ -1,0 +1,21 @@
+module GChart
+  class Sparkline < GChart::Base
+    # Sparklines are essentially the same as line charts, but without
+    # axis lines. Because they are often placed within text, the default
+    # size should be smaller.
+    def initialize(*args, &block)
+<<<<<<< HEAD
+      @width ||= "60"
+      @height ||= "20"
+
+=======
+      @width = "60"
+      @height = "20"
+>>>>>>> JackDangerMerge
+      super(*args, &block)
+    end
+    def render_chart_type #:nodoc:
+      "ls"
+    end
+  end
+end

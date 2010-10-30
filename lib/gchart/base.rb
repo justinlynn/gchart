@@ -58,16 +58,29 @@ module GChart
       GChart.charts << subclass
     end
 
-    def initialize(options={}, &block)
-      @data   = []
-      @colors = []
-      @legend = []
-      @axes   = []
-      @extras = {}
+    # Background rrggbb color of entire chart image.
+    attr_accessor :entire_background
 
-      @width = 300
-      @height = 200
-  
+    # Background rrggbb color of just chart area of chart image.
+    attr_accessor :chart_background
+
+    # Array of +GChart::Axis+ objects.
+    attr_accessor :axes
+
+    # Array of rrggbb colors with optional start and end indexes
+    attr_accessor :fills
+
+    def initialize(options={}, &block)
+      @data   ||= []
+      @colors ||= []
+      @legend ||= []
+      @axes   ||= []
+      @extras ||= {}
+      @fills  ||= []
+
+      @width  ||= 300
+      @height ||= 200
+
       options.each { |k, v| send("#{k}=", v) }
       yield(self) if block_given?
     end
@@ -109,8 +122,8 @@ module GChart
     
     # Returns the chart's URL.
     def to_url
-      query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
-      "#{GChart::URL}?#{query}"
+      pluck_out_data_points! if url_to_try.length > GChart::URL_MAXIMUM_LENGTH
+      url_to_try
     end
 
     # Returns the chart's generated PNG as a blob.
@@ -134,15 +147,21 @@ module GChart
     end
 
     protected
-    
+
+    def url_to_try
+      query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
+      "#{GChart::URL}?#{query}"
+    end
+
     def query_params(raw_params={}) #:nodoc:
       params = raw_params.merge("cht" => render_chart_type, "chs" => size)
-      
+
       render_data(params)
       render_title(params)
       render_colors(params)
       render_legend(params)
       render_backgrounds(params)
+      render_fills(params)
 
       unless @axes.empty?
         if is_a?(GChart::Line) or is_a?(GChart::Bar) or is_a?(GChart::Scatter) # or is_a?(GChart::Radar)
@@ -156,7 +175,7 @@ module GChart
     def render_chart_type #:nodoc:
       raise NotImplementedError, "override in subclasses"
     end
-    
+
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
       max = self.max || raw.collect { |s| s.compact.max }.max
@@ -166,7 +185,7 @@ module GChart
       end
       params["chd"] = "e:#{sets.join(",")}"
     end
-    
+
     def render_title(params) #:nodoc:
       params["chtt"] = title.tr("\n ", "|+") if title
     end
@@ -275,7 +294,8 @@ module GChart
 
     def render_axis_range_markers(params) #:nodoc:
       if @axes.any?{ |axis| axis.range_markers.size > 0 }
-        chmr = []
+        # make sure we get any existing chm params in there
+        chmr = [ params["chm"] ].compact
 
         @axes.each do |axis|
           axis.range_markers.each do |range, color|
@@ -285,6 +305,104 @@ module GChart
 
         params["chm"] = chmr.join('|')
       end
+    end
+
+    def render_fills(params) #:nodoc:
+      unless @fills.empty?
+        # make sure we get any existing chm params in there
+        chmr = [ params["chm"] ].compact
+
+        @fills.each do |fill|
+          color, start_idx, end_idx = *Array(fill)
+          start_idx ||= 0
+          end_idx   ||= 0
+
+          if start_idx == 0 && end_idx == 0
+            op = 'B'
+          else
+            op = 'b'
+          end
+
+          chmr << "#{op},#{GChart.expand_color(color)},#{start_idx},#{end_idx},0"
+        end
+
+        params["chm"] = chmr.join('|')
+      end
+    end
+
+    # If the length of an initially-generated URL exceeds the maximum
+    # length which Google allows for chart URLs, then we need to trim
+    # off some data.  Here we make the (rather sane) assumption that
+    # each data set is the same size as every other data set (or a
+    # size of 1, which we ignore here).  Then we remove the same
+    # number of points from each data set, in an as evenly-distributed
+    # approach as we can muster, until the length of our generated URL
+    # is less than the maximum length.
+    def pluck_out_data_points!
+      original_data_sets = data_clone(data)
+
+      divisor_upper = data.collect{ |set| set.length }.max
+      divisor_lower = 0
+      divisor       = 0
+
+      while divisor_upper - divisor_lower > 1 || url_to_try.length > GChart::URL_MAXIMUM_LENGTH
+        self.data = data_clone(original_data_sets)
+
+        if divisor_upper - divisor_lower > 1
+          divisor = (divisor_lower + divisor_upper) / 2
+        else
+          divisor += 1
+        end
+
+        data.each do |set|
+          next if set.size == 1
+          indexes_for_plucking(set.size, divisor).each do |deletion_index|
+            set.delete_at(deletion_index)
+          end
+        end
+
+        if divisor_upper - divisor_lower > 1
+          if url_to_try.length > GChart::URL_MAXIMUM_LENGTH
+            divisor_lower = divisor
+          else
+            divisor_upper = divisor
+          end
+        end
+      end
+    end
+
+    def indexes_for_plucking(array_length, divisor) #:nodoc:
+      indexes = []
+
+      last_index               = array_length - 1
+      num_points_to_remove     = divisor - 1
+      num_points_after_removal = array_length - num_points_to_remove
+      num_points_in_chunk      = num_points_after_removal / divisor.to_f
+
+      subtraction_point = array_length.to_f
+
+      1.upto(num_points_to_remove) do |point_number|
+        subtraction_point -= num_points_in_chunk
+        indexes.push( (subtraction_point - point_number).round )
+      end
+
+      indexes
+    end
+
+    def data_clone(original_array_of_arrays) #:nodoc:
+      cloned_array_of_arrays = Array.new
+
+      original_array_of_arrays.each do |original_array|
+        cloned_array = Array.new
+
+        original_array.each do |datum|
+          cloned_array << datum
+        end
+
+        cloned_array_of_arrays << cloned_array
+      end
+
+      cloned_array_of_arrays
     end
   end
 end

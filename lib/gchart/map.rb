@@ -6,7 +6,6 @@ module GChart
     attr_accessor :background
     
     def initialize(*args, &block)
-      super(*args, &block)
       # Set some sane defaults so that the only requirement is data
       @area ||= 'world' #default
       @background ||= 'dfdfff' #make it look like water

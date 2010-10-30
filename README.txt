@@ -23,6 +23,9 @@ query parameters using the :extras key, e.g.,
   # line chart
   g = GChart.line(:data => [0, 10, 100])
   
+  # sparkline chart
+  g = GChart.sparkline(:data => [10, 30, 5, 0, 60, 100]))
+  
   # bar chart
   g = GChart.bar(:data => [100, 1000, 10000])
   

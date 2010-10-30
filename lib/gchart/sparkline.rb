@@ -5,8 +5,8 @@ module GChart
     # size should be smaller.
     def initialize(*args, &block)
       super(*args, &block)
-      @width = "60"
-      @height = "20"
+      @width ||= "60"
+      @height ||= "20"
     end
     def render_chart_type #:nodoc:
       "ls"

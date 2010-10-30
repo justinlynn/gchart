@@ -2,7 +2,18 @@ require "open-uri"
 require "uri"
 
 module GChart
+  class << self
+    attr_accessor :charts
+  end
+  
   class Base
+    AXIS_NAMES = {
+      :left_axis => 'y',
+      :top_axis => 't',
+      :right_axis => 'r',
+      :bottom_axis => 'x'
+    }
+
     # Array of chart data. See subclasses for specific usage.
     attr_accessor :data
 
@@ -26,6 +37,12 @@ module GChart
 
     # Chart height, in pixels.
     attr_reader :height
+    
+    attr_accessor :left_axis
+    attr_accessor :top_axis
+    attr_accessor :right_axis
+    attr_accessor :bottom_axis
+
 
     # Background rrggbb color of entire chart image.
     attr_accessor :entire_background
@@ -35,6 +52,11 @@ module GChart
 
     # Array of +GChart::Axis+ objects.
     attr_accessor :axes
+
+    def self.inherited(subclass)
+      GChart.charts ||= []
+      GChart.charts << subclass
+    end
 
     def initialize(options={}, &block)
       @data   = []
@@ -84,7 +106,7 @@ module GChart
         raise ArgumentError, "Invalid size: #{size.inspect} yields a graph with more than 300,000 pixels"
       end
     end
-
+    
     # Returns the chart's URL.
     def to_url
       query = query_params.collect { |k, v| "#{k}=#{URI.escape(v)}" }.join("&")
@@ -137,8 +159,8 @@ module GChart
     
     def render_data(params) #:nodoc:
       raw = data && data.first.is_a?(Array) ? data : [data]
-      max = self.max || raw.collect { |s| s.max }.max
-
+      max = self.max || raw.collect { |s| s.compact.max }.max
+  
       sets = raw.collect do |set|
         set.collect { |n| GChart.encode(:extended, n, max) }.join
       end

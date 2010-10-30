@@ -77,8 +77,8 @@ describe GChart::Base, "#query_params" do
   end
   
   it "contains the chart's data" do
-    @chart.data = [[1, 2, 3], [3, 2, 1]]
-    @chart.query_params["chd"].should == "e:VVqq..,..qqVV"
+    @chart.data = [[1, 2, nil], [3, 2, 1]]
+    @chart.query_params["chd"].should == "e:VVqq__,..qqVV"
   end
   
   it "contains the chart's size" do
